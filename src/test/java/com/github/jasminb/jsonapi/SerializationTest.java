@@ -168,7 +168,7 @@ public class SerializationTest {
 		Status status = convertedBack.get().getStatuses().iterator().next();
 		Assert.assertNotNull(status.getContent());
 	}
-
+	
 	@Test
 	public void testOverrideGlobalMetaLinksSettings() throws DocumentSerializationException {
 		JSONAPIDocument<User> document = createDocument(createUser());

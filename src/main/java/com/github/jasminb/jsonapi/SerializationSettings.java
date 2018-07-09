@@ -1,6 +1,7 @@
 package com.github.jasminb.jsonapi;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -14,6 +15,7 @@ public class SerializationSettings {
 	private Boolean serializeMeta;
 	private Boolean serializeLinks;
 	private Boolean serializeEmptyAttributesTag = true;
+	public  Comparator<String> includedComparator;
 	
 	private SerializationSettings() {
 		// Hide CTOR
@@ -66,6 +68,7 @@ public class SerializationSettings {
 		private Boolean serializeMeta;
 		private Boolean serializeLinks;
 		private Boolean serializeEmptyAttributesTag;
+		private Comparator<String> includedComparator;
 		
 		/**
 		 * Explicitly enable relationship serialisation.
@@ -112,6 +115,11 @@ public class SerializationSettings {
 			return this;
 		}
 		
+		public Builder setIncludedComparator(Comparator<String> comparator) {
+			includedComparator = comparator;
+			return this;
+		}
+		
 		/**
 		 * Create new SerialisationSettings instance.
 		 * @return {@link SerializationSettings}
@@ -123,6 +131,7 @@ public class SerializationSettings {
 			result.serializeLinks = serializeLinks;
 			result.serializeMeta = serializeMeta;
 			result.serializeEmptyAttributesTag = serializeEmptyAttributesTag;
+			result.includedComparator = includedComparator;
 			return result;
 		}
 	}

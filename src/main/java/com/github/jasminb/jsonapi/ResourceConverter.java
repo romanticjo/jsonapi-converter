@@ -31,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import static com.github.jasminb.jsonapi.JSONAPISpecConstants.*;
 
@@ -672,10 +673,28 @@ public class ResourceConverter {
 	 */
 	public byte [] writeDocument(JSONAPIDocument<?> document, SerializationSettings settings)
 			throws DocumentSerializationException {
+	
+		try {
+			JsonNode result = getDocumentNode(document, settings);
+			return objectMapper.writeValueAsBytes(result);
+		} catch (DocumentSerializationException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new DocumentSerializationException(e);
+		}
+	}
+	
+	public JsonNode getDocumentNode(JSONAPIDocument<?> document, SerializationSettings settings) 
+			throws DocumentSerializationException {
 		try {
 			resourceCache.init();
 
-			Map<String, ObjectNode> includedDataMap = new HashMap<>();
+			Map<String, ObjectNode> includedDataMap;
+			if (settings.includedComparator == null) {
+				includedDataMap = new HashMap<>();
+			} else {
+				includedDataMap = new TreeMap<>(settings.includedComparator);
+			}
 
 			ObjectNode result = objectMapper.createObjectNode();
 
@@ -699,12 +718,12 @@ public class ResourceConverter {
 			// Serialize global links and meta
 			serializeMeta(document, result, settings);
 			serializeLinks(document, result, settings);
-			return objectMapper.writeValueAsBytes(result);
+			return result;
 		} catch (Exception e) {
 			throw new DocumentSerializationException(e);
 		} finally {
 			resourceCache.clear();
-		}
+		}		
 	}
 
 	private void serializeMeta(JSONAPIDocument<?> document, ObjectNode resultNode, SerializationSettings settings) {
@@ -878,7 +897,7 @@ public class ResourceConverter {
 
 							// Handle included data
 							if (shouldSerializeRelationship(relationshipName, settings) && idValue != null) {
-								String identifier = idValue.concat(relationshipType);
+								String identifier =  idValue.concat(":").concat(relationshipType);// idValue.concat(relationshipType);
 								if (!includedContainer.containsKey(identifier) && !resourceCache.contains(identifier)) {
 									includedContainer.put(identifier,
 											getDataNode(element, includedContainer, settings));
@@ -899,7 +918,7 @@ public class ResourceConverter {
 						relationshipDataNode.set(DATA, identifierNode);
 
 						if (shouldSerializeRelationship(relationshipName, settings) && idValue != null) {
-							String identifier = idValue.concat(relationshipType);
+							String identifier = idValue.concat(":").concat(relationshipType);//idValue.concat(relationshipType);
 							if (!includedContainer.containsKey(identifier)) {
 								includedContainer.put(identifier,
 										getDataNode(relationshipObject, includedContainer, settings));
